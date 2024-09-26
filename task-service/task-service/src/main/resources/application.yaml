@@ -1,0 +1,61 @@
+
+task:
+  serviceUrl: http://localhost:5001/web/v1
+
+server:
+  port: 5003
+
+spring:
+  data:
+    redis:
+      database: 0
+#      password:
+      host: localhost
+      port: 6379
+      time-to-live: 60000
+      connect-timeout: 50000
+
+  cache:
+    type: redis
+    cache-names: TaskService
+    redis:
+      time-to-live: 60000
+
+  application:
+    name: TASK-SERVICE
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/Task_Management
+    username: postgres
+    password: 5468
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+
+
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+management:
+  endpoints:
+    web:
+      base-path: /monitor
+
+      exposure:
+        include: beans,health,info,mappings,appDescription
+
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/

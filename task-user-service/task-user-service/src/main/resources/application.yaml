@@ -1,0 +1,32 @@
+#spring.application.name=task-user-service
+
+server:
+  port: 5001
+
+spring:
+  application:
+    name: USER-SERVICE
+
+  datasource:
+    driver-class-nam: org.postgresql.Driver
+
+    url: jdbc:postgresql://localhost:5432/Task_Management
+    username: postgres
+    password: 5468
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+
+
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/

@@ -1,0 +1,133 @@
+
+
+server:
+  port: 5005
+
+spring:
+  application:
+    name: GATEWAY_SERVICE
+
+  cloud:
+    gateway:
+      routes:
+        - id: USER-SERVICE
+          uri: http://localhost:5001
+
+          predicates:
+            - Path=/auth/**,/web/v1/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: allservicecommon
+                fallbackUri: forward:/user-service-fallback
+#            - name: Bulkhead
+#              args:
+#               name: allservicecommonbulkhead
+#               fallbackUri:
+#            - name: RateLimiter
+#              args:
+#                name: allservicecommonratelimiter
+#                fallbackUri: forward:/user-service-fallback
+
+        - id: TASK-SERVICE
+          uri: http://localhost:5003
+          predicates:
+            - Path=/api/tasks/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: allservicecommon
+                fallbackUri: forward:/task-service-fallback
+#            - name: Bulkhead
+#              args:
+#                name: allservicecommonbulkhead
+#                fallbackUri:
+#            - name: RateLimiter
+#              args:
+#                name: allservicecommonratelimiter
+#                fallbackUri: forward:/task-service-fallback
+
+        - id: SUBMISSION_SERVICE
+          uri: http://localhost:5004
+
+          predicates:
+            - Path=/api/submissions/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: allservicecommon
+                fallbackUri: forward:/submission-service-fallback
+#            - name: Bulkhead
+#              args:
+#                name: allservicecommonbulkhead
+#                fallbackUri:
+#            - name: RateLimiter
+#              args:
+#                name: allservicecommonratelimiter
+#                fallbackUri: forward:/submission-service-fallback
+
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credential Access-Control-Allow-Origin
+      globalcors:
+        cors-configuration:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      allservicecommon:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 25
+        permittedNumberOfCallsInHalfOpenState: 10
+        waitDurationInOpenState: 20s
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 25
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+  bulkhead:
+    instances:
+      allservicecommonbulkhead:
+        maxConcurrentCalls: 20
+        maxWaitDuration: 500ms
+
+  ratelimiter:
+    instances:
+      allservicecommonratelimiter:
+        limitForPeriod: 20
+        limitRefreshPeriod: 2s
+        timeoutDuration: 500ms
+
+
+
+eureka:
+  instance:
+    prefer-ip-address: true
+
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/
+
+
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+
+  endpoints:
+    web:
+      base-path: /monitor
+      exposure:
+        include: beans,health,mapping,appDetail
+
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+
